@@ -1,0 +1,5 @@
+file(GLOB TEST_SRC *.cpp */*.cpp)
+message(STATUS "TEST_SRC has ${TEST_SRC}")
+add_executable(test ${TEST_SRC})
+target_link_libraries(test ${PROJECT_NAME})
+target_link_libraries(test ${Boost_LIBRARIES})

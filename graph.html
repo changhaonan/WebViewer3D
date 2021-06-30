@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>graph visualization</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link type="text/css" rel="stylesheet" href="./extern/three.js/examples/main.css">
+    <script src="./extern/dat.gui/build/dat.gui.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://d3js.org/d3.v4.js"></script>
+
+    <style type="text/css">
+        #graph-info {
+          position: absolute;
+          top: 0px;
+          left: 40%;
+          margin: 10px;
+          background-color: #030303;
+          color: rgb(255, 255, 255);
+          padding: 5px 10px;
+        }
+        #inner_graph {
+          position: absolute;
+          top: 75%;
+          left: 10%;
+          margin: 10px;
+          background-color: #09f6f6;
+          color: rgb(255, 255, 255);
+          padding: 5px 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <script type="module" src="./graph_vis.js"></script>
+    <div id="inner_graph"></div>
+</body>
+
+</html>

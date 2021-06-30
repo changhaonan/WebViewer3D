@@ -1,0 +1,6 @@
+*.obj
+*.pcd
+*.json
+*.png
+.vscode/*
+build/*

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>three.js webgl - PCD</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="./extern/three.js/examples/main.css">
+        <script src="./extern/dat.gui/build/dat.gui.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://d3js.org/d3.v4.js"></script>
+
+        <style type="text/css">
+            #canvas {
+              position: absolute;
+              top: 0%;
+              left: 20%;
+              margin: 5px;
+              background-color: #f7f8f7;
+              color: rgb(255, 255, 255);
+              padding: 1px 1px;
+            }
+            #info {
+                position: absolute;
+                top: 0%;
+                left: 0%;
+                height: 95%;
+                width: 18%;
+                margin: 1%;
+                background-color: #f7f8f7;
+                color: rgb(0, 0, 0);
+                padding: 1px 1px;
+            }
+            #select {
+                height: 9%;
+                width: 96%;
+                margin: 2%;
+                background-color: #050505;
+                color: rgb(255, 253, 253);
+                padding: 1px 1px;
+                font-size: x-large;
+            }
+            #info_select {
+                height: 89%;
+                width: 96%;
+                margin: 2%;
+                background-color: #050505;
+                color: rgb(255, 253, 253);
+                padding: 1px 1px;
+            }
+        </style>
+    </head>
+    
+	<body>
+        <div id="canvas"></div>
+        <div id="info">
+            <div id="select">
+                Selection
+            </div>
+
+            <div id="info_select">
+                Statics
+            </div>
+        </div>
+        <script type="module" src="./canvas.js"></script>
+	</body>
+</html>
