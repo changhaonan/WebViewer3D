@@ -1,4 +1,5 @@
 #include "context.hpp"
+using namespace WebViewer3D;
 
 void test_add() {
     Context& context = Context::Instance();

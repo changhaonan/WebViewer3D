@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
-project(3DWebViewer VERSION 1.0.0 LANGUAGES CXX)
+project(WebViewer3D VERSION 1.0.0 LANGUAGES CXX)
 
 # Add cmake module path
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -48,7 +48,7 @@ write_basic_package_version_file("${PROJECT_NAME}ConfigVersion.cmake"
                                  COMPATIBILITY SameMajorVersion)
 
 if(NOT INCLUDE_INSTALL_DIR)
-  set(INCLUDE_INSTALL_DIR include/3DWebViewer)
+  set(INCLUDE_INSTALL_DIR include/WebViewer3D)
 endif()
 
 configure_package_config_file(
