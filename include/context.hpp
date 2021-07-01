@@ -100,7 +100,7 @@ namespace WebViewer3D {
             std::string file_name;
             if(name.find(".") == std::string::npos) {
                 std::string file_type = m_context_info[name]["file_type"];
-                std::string file_name = name + "." + file_type;
+                file_name = name + "." + file_type;
             }
             else  {
                 file_name = name;

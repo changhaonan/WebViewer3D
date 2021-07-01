@@ -4,6 +4,7 @@ using namespace WebViewer3D;
 void test_add() {
     Context& context = Context::Instance();
     context.addPointCloud("measurement", 0.5);
+    std::cout << context.at("measurement") << std::endl;
 }
 
 void test_save() {
@@ -13,7 +14,7 @@ void test_save() {
 
 int main() {
     Context& context = Context::Instance();
-    context.setDir("/home/harvey/Project/3DWebViewer/test_data", "frame");
+    context.setDir("/home/harvey/Project/WebViewer3D/test_data", "frame");
     
     test_add();
 
