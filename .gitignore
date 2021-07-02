@@ -4,3 +4,4 @@
 *.png
 .vscode/*
 build/*
+node_modules/*

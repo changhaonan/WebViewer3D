@@ -1,9 +1,9 @@
 // import three js
-import * as THREE from './extern/three.js/build/three.module.js';
-import {OrbitControls} from './extern/three.js/examples/jsm/controls/OrbitControls.js';
-import {Lut} from '/extern/three.js/examples/jsm/math/Lut.js';
-import {OBJLoader} from './extern/three.js/examples/jsm/loaders/OBJLoader.js';
-import {PCDLoader} from './extern/three.js/examples/jsm/loaders/PCDLoader.js';
+import * as THREE from './external/three.js/build/three.module.js';
+import {OrbitControls} from './external/three.js/examples/jsm/controls/OrbitControls.js';
+import {Lut} from '/external/three.js/examples/jsm/math/Lut.js';
+import {OBJLoader} from './external/three.js/examples/jsm/loaders/OBJLoader.js';
+import {PCDLoader} from './external/three.js/examples/jsm/loaders/PCDLoader.js';
 
 
 let camera, scene, renderer, lut, param, gui, raycaster;

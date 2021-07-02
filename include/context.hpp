@@ -77,14 +77,16 @@ namespace WebViewer3D {
             json info_data;
             info_data["file_type"] = "pcd";
             info_data["file_name"] = (name + ".pcd");
-            info_data["section"] = "Point-Cloud";
-            info_data["control"] = name;
-            info_data["mode"] = "point";
-            info_data["gui"] = "check_box";
-            info_data["default"] = false;
-            info_data["intersectable"] = false;
-            info_data["coordinate"] = std::vector<float>(coordinate.data(), coordinate.data()+16);
-            info_data["size"] = size;
+            
+            // visualization part
+            info_data["vis"]["section"] = "Point-Cloud";
+            info_data["vis"]["control"] = name;
+            info_data["vis"]["mode"] = "point";
+            info_data["vis"]["gui"] = "check_box";
+            info_data["vis"]["default"] = false;
+            info_data["vis"]["intersectable"] = false;
+            info_data["vis"]["coordinate"] = std::vector<float>(coordinate.data(), coordinate.data()+16);
+            info_data["vis"]["size"] = size;
             addData(name, info_data);
         }
 
@@ -94,8 +96,13 @@ namespace WebViewer3D {
             m_context_info[name] = info;
         }
 
-        boost::filesystem::path currentFile(const std::string& name) {
-            boost::filesystem::path data_dir = currentDir();
+        boost::filesystem::path currentFile(const std::string& name) {            
+            boost::filesystem::path file_path = m_data_root_dir / currentRelFile(name);
+            return file_path;
+        }
+
+        boost::filesystem::path currentRelFile(const std::string& name) {
+            boost::filesystem::path data_dir = currentRelDir();
             
             std::string file_name;
             if(name.find(".") == std::string::npos) {
@@ -111,6 +118,11 @@ namespace WebViewer3D {
         }
 
         boost::filesystem::path currentDir() {
+            boost::filesystem::path data_dir = m_data_root_dir / currentRelDir();
+            return data_dir;
+        }
+
+        boost::filesystem::path currentRelDir() {
             std::string dir_name;
             if((m_dir_prefix == "") && (m_dir_suffix == ""))
                 dir_name = stringFormat("%06d", m_id);
@@ -120,16 +132,27 @@ namespace WebViewer3D {
                 dir_name = stringFormat("%s_%06d", m_dir_prefix.c_str(), m_id);
             else 
                 dir_name = stringFormat("%s_%06d_%s", m_dir_prefix.c_str(), m_id, m_dir_suffix.c_str());
-            boost::filesystem::path data_dir = m_data_root_dir / dir_name;
-            return data_dir;
+            
+            boost::filesystem::path rel_dir(dir_name);
+            return rel_dir;
         }
 
         int m_id;
         json m_context_info;
 
     public:
-        void save(const int id) {
+        void open(const int id) {
+            // assign id
             m_id = id;
+
+            // check existence
+            boost::filesystem::path current_dir;
+            if(!boost::filesystem::exists(current_dir = currentDir())) {
+                boost::filesystem::create_directory(current_dir);
+            }
+        }
+
+        void close() {
             save();
         }
 
@@ -141,13 +164,7 @@ namespace WebViewer3D {
 
     private:
         void save() {
-            // check existence
-            boost::filesystem::path current_dir;
-            if(!boost::filesystem::exists(current_dir = currentDir())) {
-                boost::filesystem::create_directory(current_dir);
-            }
-
-            std::string file_name = (current_dir / "context.json").string();
+            std::string file_name = (currentDir() / "context.json").string();
             std::ofstream o(file_name);
             o << std::setw(4) << m_context_info << std::endl;
             o.close();

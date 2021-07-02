@@ -1,9 +1,9 @@
-import * as THREE from "./external/three.js/build/three.module.js.js";
-import {TrackballControls} from "./external/three.js/examples/jsm/controls/TrackballControls.js.js";
-import {OBJLoader} from "./external/three.js/examples/jsm/loaders/OBJLoader.js.js";
-import {PCDLoader} from "./external/three.js/examples/jsm/loaders/PCDLoader.js.js";
-import {TransformControls} from "./external/three.js/examples/jsm/controls/TransformControls.js.js";
-import {VertexNormalsHelper} from "./external/three.js/examples/jsm/helpers/VertexNormalsHelper.js.js"
+import * as THREE from "./external/three.js/build/three.module.js";
+import {TrackballControls} from "./external/three.js/examples/jsm/controls/TrackballControls.js";
+import {OBJLoader} from "./external/three.js/examples/jsm/loaders/OBJLoader.js";
+import {PCDLoader} from "./external/three.js/examples/jsm/loaders/PCDLoader.js";
+import {TransformControls} from "./external/three.js/examples/jsm/controls/TransformControls.js";
+import {VertexNormalsHelper} from "./external/three.js/examples/jsm/helpers/VertexNormalsHelper.js"
 
 
 // global variable
@@ -24,6 +24,7 @@ var engine_data = {
     gui : new dat.GUI(),
     guis : {},
     defaults : {},
+    obj_loaded : [],
     offset : new THREE.Vector3(),
     intersectable : [],
     last_pick : null,
@@ -81,7 +82,7 @@ class AVEngine {
         trackBall_control.rotateSpeed = 5.0;
         trackBall_control.panSpeed = 1.0;
         trackBall_control.zoomSpeed = 2.0;
-        // trackBall_control.target.set(0, 0, 0);
+        trackBall_control.target.set(0, 0, 0);
         trackBall_control.staticMoving = true;
         trackBall_control.update();
         
@@ -101,40 +102,42 @@ class AVEngine {
             // save data
             engine_data.data = data;
 
+            // update gui
             $.each(data, (name, j) => {
-                if(j.type == "info") {
-                    if((name == "camera") && (!engine_data.camera_init)) {
-                        updateCamera(j.vis.extrinsic, j.vis.target);
-                        engine_data.camera_init = true;
-                    }
-                }
-                else {
-                    // console.log("%s loaded\n", name);
-                    if(j.save != undefined) loadModel(name, j.save, j.vis);
-                    if(j.vis != undefined) updateGuiVis(name, j.vis);  // update gui vis
-                    if(j.interact != undefined) updateGuiInt(name, j.interact);  // update gui interaction
-                }
+                if(j.vis != undefined) updateGuiVis(name, j.vis);  // update gui vis
+                if(j.interact != undefined) updateGuiInt(name, j.interact);  // update gui interaction
             });
             
             // vis callback
-            $.each(engine_data.vis_controls, (key, value) => {
+            $.each(engine_data.vis_controls, (key) => {
                 engine_data.controls[key].onChange(visibleCallBack(key));
             });
 
             // int callback
-            $.each(engine_data.int_controls, (key, value) => {
+            $.each(engine_data.int_controls, (key) => {
                 engine_data.controls[key].onChange((value) => {
                     if(value) initInt(key);
                 });
             });
+
+            // active load model
+            engine_data.obj_loaded = [];  // clean active
+            $.each(engine_data.vis_controls, (key) => {
+                if(engine_data.controls[key].getValue()) {
+                    $.each(engine_data.vis_controls[key], 
+                        (_i, name) => {
+                            loadModel(name, engine_data.data[name]);
+                            engine_data.obj_loaded.push(name);
+                        })
+                    render();
+                }
+            });
+
         });
     }
 
-    parseId(id) {
-        this.parseJson(engine_data.dir_prefix + id + "/context.json");
-    }
-
     parsePosInList(pos) {
+        engine_data.p = pos;  // update pos
         this.parseJson(engine_data.dir_prefix + engine_data.list_dir[pos] + "/context.json");
     }
 
@@ -186,65 +189,62 @@ function updateGuiControl(data) {
 }
 
 function updateGuiVis(name, data) {
-    if(data.enable) {
-        let gui_control = updateGuiControl(data);
-        let name_control = data.control;
-        if(name_control in engine_data.vis_controls) {
-            if(!(engine_data.vis_controls[name_control].includes(name))) {
-                engine_data.vis_controls[name_control].push(name);
-            }
-        }
-        else {
-            engine_data.vis_controls[name_control] = [];
+    let gui_control = updateGuiControl(data);
+    let name_control = data.control;
+    if(name_control in engine_data.vis_controls) {
+        if(!(engine_data.vis_controls[name_control].includes(name))) {
             engine_data.vis_controls[name_control].push(name);
         }
+    }
+    else {
+        engine_data.vis_controls[name_control] = [];
+        engine_data.vis_controls[name_control].push(name);
     }
 }
 
 function updateGuiInt(name, data) {
-    if(data.enable) {
-        let gui_control = updateGuiControl(data);
-        let name_control = data.control;
-        if(name_control in engine_data.int_controls) {
-            if(!(engine_data.int_controls[name_control].includes(name))) {
-                engine_data.int_controls[name_control].push(name);
-            }
-        }
-        else {
-            engine_data.int_controls[name_control] = [];
+    let gui_control = updateGuiControl(data);
+    let name_control = data.control;
+    if(name_control in engine_data.int_controls) {
+        if(!(engine_data.int_controls[name_control].includes(name))) {
             engine_data.int_controls[name_control].push(name);
         }
+    }
+    else {
+        engine_data.int_controls[name_control] = [];
+        engine_data.int_controls[name_control].push(name);
     }
 }
 
 // model loading
-function loadModel(name, data_save, data_vis) {
-    if(data_vis.enable) {
-        if(data_save.enable) {
-            if(data_save.format == "obj") {
-                loadModelOBJ(name, data_save.rel_path, data_vis.default, data_vis.intersectable);
-            }
-            else if(data_save.format == "pcd") {
-                loadModelPCD(name, data_save.rel_path, data_vis.default, data_vis.intersectable);
-            }
-            else if(data_save.format == "json") {
-                if(data_save.parse == "corr") {
-                    loadModelCorr(name, data_save.rel_path, data_vis.default, data_vis.intersectable);
-                }
-            }
-            else {
-                console.log("Format %s is not supported.\n", data_save.format);
-            }
+function loadModel(name, data) {
+    if(data.file_type == "obj") {
+        loadModelOBJ(name, data.file_name, data.vis);
+        console.log("Obj: ", name, " loaded.\n");
+    }
+    else if(data.file_type == "pcd") {
+        loadModelPCD(name, data.file_name, data.vis);
+        console.log("Pcd: ", name, " loaded.\n");
+    }
+    else if(data.file_type == "json") {
+        if(data.vis.mode == "corr") {
+            loadModelCorr(name, data.file_name, data.vis);
+            console.log("Corr: ", name, " loaded.\n");
         }
-        else {  // save : false
-            if(data_vis.mode == "geometry") {
-                loadModelGeometry(name, data_vis.default, data_vis.intersectable);
-            }
-        }
+    }
+    else if(data.vis.mode == "geometry") {
+        loadModelGeometry(name, data.vis);
+        console.log("Geometry: ", name, " loaded.\n");
+    }
+    else {
+        console.log("Format %s is not supported.\n", data_save.format);
     }
 }
 
-function loadModelOBJ(name, file_path, visible, intersectable) {
+function loadModelOBJ(name, file_name, data_vis) {
+    // get full path
+    let file_path = engine_data.dir_prefix + engine_data.list_dir[engine_data.p] + "/" + file_name;
+
     const obj_loader = new OBJLoader();
     obj_loader.load(
         file_path, // URL
@@ -252,22 +252,18 @@ function loadModelOBJ(name, file_path, visible, intersectable) {
             let obj = mesh.children[0];
             obj.material.side = THREE.DoubleSide;
             
-            // add normal
-            // const helper = new VertexNormalsHelper(obj, 0.04, 0x00ff00, 0.005);
-
             // set color
             obj.material.color.setHex(Math.random() * 0xffffff);
             obj.name = name;
             
             // set relative transform to parent
             let M = new THREE.Matrix4();  // relative transform
-            M.elements = engine_data.data[name].vis.coordinate;
+            M.elements = data_vis.coordinate;
             obj.applyMatrix4(M);
             
             // existence check
             let obj_to_remove;
             if((obj_to_remove = scene.getObjectByName(name)) != undefined) {
-                visible = obj_to_remove.visible;
                 // color inherit
                 obj.material.color = obj_to_remove.material.color;
                 const index = engine_data.intersectable.indexOf(obj_to_remove);
@@ -277,11 +273,10 @@ function loadModelOBJ(name, file_path, visible, intersectable) {
                 scene.remove(obj_to_remove);
             }
             
-            obj.visible = visible;  // update visible status
+            obj.visible = true;  // update visible status
             scene.add(obj);
-            // scene.add(helper);
 
-            if(intersectable) {
+            if(data_vis.intersectable) {
                 engine_data.intersectable.push(obj);
             }
         },
@@ -296,7 +291,10 @@ function loadModelOBJ(name, file_path, visible, intersectable) {
     );
 }
 
-function loadModelPCD(name, file_path, visible, intersectable) {
+function loadModelPCD(name, file_name, data_vis) {
+    // get full path
+    let file_path = engine_data.dir_prefix + engine_data.list_dir[engine_data.p] + "/" + file_name;
+
     const pcd_loader = new PCDLoader();
     pcd_loader.load(
         file_path,
@@ -304,15 +302,14 @@ function loadModelPCD(name, file_path, visible, intersectable) {
             pcd.name = name;
             
             let M = new THREE.Matrix4();  // relative transform
-            M.elements = engine_data.data[name].vis.coordinate;
+            M.elements = data_vis.coordinate;
             pcd.applyMatrix4(M);
 
             // size
-            pcd.material.size = pcd.material.size * engine_data.data[name].vis.size;
+            pcd.material.size = pcd.material.size * data_vis.size;
 
             let pcd_to_remove;
             if((pcd_to_remove = scene.getObjectByName(name)) != undefined) {
-                visible = pcd_to_remove.visible;
                 // color inherit
                 pcd.material.color = pcd_to_remove.material.color;
                 const index = engine_data.intersectable.indexOf(pcd_to_remove);
@@ -322,10 +319,10 @@ function loadModelPCD(name, file_path, visible, intersectable) {
                 scene.remove(pcd_to_remove);
             }
 
-            pcd.visible = visible;
+            pcd.visible = true;
             scene.add(pcd);
 
-            if(intersectable) {
+            if(data_vis.intersectable) {
                 engine_data.intersectable.push(pcd);
             }
         },
@@ -340,7 +337,10 @@ function loadModelPCD(name, file_path, visible, intersectable) {
     )
 }
 
-function loadModelCorr(name, file_path, visible, intersectable) {
+function loadModelCorr(name, file_name, data_vis) {
+    // get full path
+    let file_path = engine_data.dir_prefix + engine_data.list_dir[engine_data.p] + "/" + file_name;
+
     $.getJSON(file_path).done(
         function(data) {
             const material = new THREE.LineBasicMaterial();
@@ -359,17 +359,16 @@ function loadModelCorr(name, file_path, visible, intersectable) {
             const line = new THREE.LineSegments(geometry, material);
             line.name = name;
 
-            if(intersectable) {
+            if(data_vis.intersectable) {
                 engine_data.intersectable.push(line);
             }
 
             let M = new THREE.Matrix4();  // relative transform
-            M.elements = engine_data.data[name].vis.coordinate;
+            M.elements = data_vis.coordinate;
             line.applyMatrix4(M);
 
             let corr_to_remove;
             if((corr_to_remove = scene.getObjectByName(name)) != undefined) {
-                visible = corr_to_remove.visible;
                 // color inherit
                 line.material.color = corr_to_remove.material.color;
                 const index = engine_data.intersectable.indexOf(corr_to_remove);
@@ -379,15 +378,13 @@ function loadModelCorr(name, file_path, visible, intersectable) {
                 scene.remove(corr_to_remove);
             }
 
-            line.visible = visible;
+            line.visible = true;
             scene.add(line);
         }
     );
-
 }
 
-function loadModelGeometry(name, visible, intersectable) { 
-    let data_vis = engine_data.data[name].vis;
+function loadModelGeometry(name, data_vis) { 
     let geometry_type = data_vis.geometry;
     
     let geo;
@@ -417,7 +414,7 @@ function loadModelGeometry(name, visible, intersectable) {
     // set name
     geo.name = name;
 
-    if(intersectable) {
+    if(data_vis.intersectable) {
         engine_data.intersectable.push(geo);
     }
 
@@ -474,7 +471,14 @@ function visibleCallBack(name_control) {
     return function(value) {
         $.each(engine_data.vis_controls[name_control], 
             (_i, name) => {
-                scene.getObjectByName(name).visible = value;
+                if(engine_data.obj_loaded.includes(name)) {
+                    scene.getObjectByName(name).visible = value;
+                }
+                else {
+                    // If it doesn't exist. Show it.
+                    loadModel(name, engine_data.data[name]); 
+                    engine_data.obj_loaded.push(name);
+                }
             })
         render();
     }
@@ -609,8 +613,6 @@ $.post("/list_dir", function(data, status) {
     engine_data.p = 0;
 
     engine.parseThis();
-    // engine.parseId(1101);
-    // engine.parseLast();
 })
 
 animate();

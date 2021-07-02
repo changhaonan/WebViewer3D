@@ -17,3 +17,9 @@ python -m http.server
 ```
 
 Open the local directory page. Click the canvas.html. You can see the model visualization
+
+## Install intruction
+```
+Install node js
+npm install express
+```
