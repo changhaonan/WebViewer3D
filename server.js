@@ -11,7 +11,7 @@ app.post("/list_dir", function(req, res){
     // parse args
     let args = process.argv.slice(2);
     let dir_data;
-    if(args.length == 0) {
+    if (args.length == 0) {
         dir_data = "./test_data/";
     }
     else {
@@ -19,7 +19,7 @@ app.post("/list_dir", function(req, res){
     }
     
     fs.readdir(dir_data, (err, dires) => {
-        if(err) {
+        if (err) {
             console.log(err)
             throw err
         }
@@ -29,7 +29,7 @@ app.post("/list_dir", function(req, res){
                 let pattern = /.*0+(\d+).*/;
                 let num_a = dir_a.replace(pattern, "$1");
                 let num_b = dir_b.replace(pattern, "$1");
-                if(parseInt(num_a) > parseInt(num_b)) return 1;
+                if (parseInt(num_a) > parseInt(num_b)) return 1;
                 else return -1;
             });  // sort
 

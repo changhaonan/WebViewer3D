@@ -104,8 +104,8 @@ class AVEngine {
 
             // update gui
             $.each(data, (name, j) => {
-                if(j.vis != undefined) updateGuiVis(name, j.vis);  // update gui vis
-                if(j.interact != undefined) updateGuiInt(name, j.interact);  // update gui interaction
+                if (j.vis != undefined) updateGuiVis(name, j.vis);  // update gui vis
+                if (j.interact != undefined) updateGuiInt(name, j.interact);  // update gui interaction
             });
             
             // vis callback
@@ -116,14 +116,14 @@ class AVEngine {
             // int callback
             $.each(engine_data.int_controls, (key) => {
                 engine_data.controls[key].onChange((value) => {
-                    if(value) initInt(key);
+                    if (value) initInt(key);
                 });
             });
 
             // active load model
             engine_data.obj_loaded = [];  // clean active
             $.each(engine_data.vis_controls, (key) => {
-                if(engine_data.controls[key].getValue()) {
+                if (engine_data.controls[key].getValue()) {
                     $.each(engine_data.vis_controls[key], 
                         (_i, name) => {
                             loadModel(name, engine_data.data[name]);
@@ -162,7 +162,7 @@ function updateGuiControl(data) {
     // section
     let gui_section;
     let name_section = data.section;
-    if(name_section in engine_data.guis) {
+    if (name_section in engine_data.guis) {
         gui_section = engine_data.guis[name_section];
     }
     else {
@@ -173,11 +173,11 @@ function updateGuiControl(data) {
     // control
     let name_control = data.control;
     let gui_control;
-    if(name_control in engine_data.controls) {
+    if (name_control in engine_data.controls) {
         gui_control = engine_data.controls[name_control];
     }
     else {
-        if(data.gui == "check_box") {
+        if (data.gui == "check_box") {
             engine_data.defaults[name_control] = data.default;
             gui_control = gui_section.add(
                 engine_data.defaults, name_control
@@ -191,8 +191,8 @@ function updateGuiControl(data) {
 function updateGuiVis(name, data) {
     let gui_control = updateGuiControl(data);
     let name_control = data.control;
-    if(name_control in engine_data.vis_controls) {
-        if(!(engine_data.vis_controls[name_control].includes(name))) {
+    if (name_control in engine_data.vis_controls) {
+        if (!(engine_data.vis_controls[name_control].includes(name))) {
             engine_data.vis_controls[name_control].push(name);
         }
     }
@@ -205,8 +205,8 @@ function updateGuiVis(name, data) {
 function updateGuiInt(name, data) {
     let gui_control = updateGuiControl(data);
     let name_control = data.control;
-    if(name_control in engine_data.int_controls) {
-        if(!(engine_data.int_controls[name_control].includes(name))) {
+    if (name_control in engine_data.int_controls) {
+        if (!(engine_data.int_controls[name_control].includes(name))) {
             engine_data.int_controls[name_control].push(name);
         }
     }
@@ -218,21 +218,21 @@ function updateGuiInt(name, data) {
 
 // model loading
 function loadModel(name, data) {
-    if(data.file_type == "obj") {
+    if (data.file_type == "obj") {
         loadModelOBJ(name, data.file_name, data.vis);
         console.log("Obj: ", name, " loaded.\n");
     }
-    else if(data.file_type == "pcd") {
+    else if (data.file_type == "pcd") {
         loadModelPCD(name, data.file_name, data.vis);
         console.log("Pcd: ", name, " loaded.\n");
     }
-    else if(data.file_type == "json") {
-        if(data.vis.mode == "corr") {
+    else if (data.file_type == "json") {
+        if (data.vis.mode == "corr") {
             loadModelCorr(name, data.file_name, data.vis);
             console.log("Corr: ", name, " loaded.\n");
         }
     }
-    else if(data.vis.mode == "geometry") {
+    else if (data.vis.mode == "geometry") {
         loadModelGeometry(name, data.vis);
         console.log("Geometry: ", name, " loaded.\n");
     }
@@ -263,11 +263,11 @@ function loadModelOBJ(name, file_name, data_vis) {
             
             // existence check
             let obj_to_remove;
-            if((obj_to_remove = scene.getObjectByName(name)) != undefined) {
+            if ((obj_to_remove = scene.getObjectByName(name)) != undefined) {
                 // color inherit
                 obj.material.color = obj_to_remove.material.color;
                 const index = engine_data.intersectable.indexOf(obj_to_remove);
-                if(index > -1) {
+                if (index > -1) {
                     engine_data.intersectable.splice(index, 1);
                 }
                 scene.remove(obj_to_remove);
@@ -276,7 +276,7 @@ function loadModelOBJ(name, file_name, data_vis) {
             obj.visible = true;  // update visible status
             scene.add(obj);
 
-            if(data_vis.intersectable) {
+            if (data_vis.intersectable) {
                 engine_data.intersectable.push(obj);
             }
         },
@@ -309,11 +309,11 @@ function loadModelPCD(name, file_name, data_vis) {
             pcd.material.size = pcd.material.size * data_vis.size;
 
             let pcd_to_remove;
-            if((pcd_to_remove = scene.getObjectByName(name)) != undefined) {
+            if ((pcd_to_remove = scene.getObjectByName(name)) != undefined) {
                 // color inherit
                 pcd.material.color = pcd_to_remove.material.color;
                 const index = engine_data.intersectable.indexOf(pcd_to_remove);
-                if(index > -1) {
+                if (index > -1) {
                     engine_data.intersectable.splice(index, 1);
                 }
                 scene.remove(pcd_to_remove);
@@ -322,7 +322,7 @@ function loadModelPCD(name, file_name, data_vis) {
             pcd.visible = true;
             scene.add(pcd);
 
-            if(data_vis.intersectable) {
+            if (data_vis.intersectable) {
                 engine_data.intersectable.push(pcd);
             }
         },
@@ -359,7 +359,7 @@ function loadModelCorr(name, file_name, data_vis) {
             const line = new THREE.LineSegments(geometry, material);
             line.name = name;
 
-            if(data_vis.intersectable) {
+            if (data_vis.intersectable) {
                 engine_data.intersectable.push(line);
             }
 
@@ -368,11 +368,11 @@ function loadModelCorr(name, file_name, data_vis) {
             line.applyMatrix4(M);
 
             let corr_to_remove;
-            if((corr_to_remove = scene.getObjectByName(name)) != undefined) {
+            if ((corr_to_remove = scene.getObjectByName(name)) != undefined) {
                 // color inherit
                 line.material.color = corr_to_remove.material.color;
                 const index = engine_data.intersectable.indexOf(corr_to_remove);
-                if(index > -1) {
+                if (index > -1) {
                     engine_data.intersectable.splice(index, 1);
                 }
                 scene.remove(corr_to_remove);
@@ -388,14 +388,14 @@ function loadModelGeometry(name, data_vis) {
     let geometry_type = data_vis.geometry;
     
     let geo;
-    if(geometry_type == "coord") {
+    if (geometry_type == "coord") {
         let scale = data_vis["scale"];
         const geometry = new THREE.SphereGeometry(0.001);  // small points
         const material = new THREE.MeshBasicMaterial({color: 0xffff00});
         geo = new THREE.Mesh(geometry, material);
         geo.add(new THREE.AxesHelper(scale));
     }
-    else if(geometry_type == "box") {
+    else if (geometry_type == "box") {
         let width = data_vis["width"];
         let height = data_vis["height"];
         let depth = data_vis["depth"];
@@ -403,7 +403,7 @@ function loadModelGeometry(name, data_vis) {
         const material = new THREE.MeshBasicMaterial({color: Math.random() * 0xffffff, side: THREE.DoubleSide});
         geo = new THREE.Mesh(geometry, material);
     }
-    else if(geometry_type == "plane") {
+    else if (geometry_type == "plane") {
         let width = data_vis["width"];
         let height = data_vis["height"];
         const geometry = new THREE.PlaneGeometry(width, height);
@@ -414,7 +414,7 @@ function loadModelGeometry(name, data_vis) {
     // set name
     geo.name = name;
 
-    if(data_vis.intersectable) {
+    if (data_vis.intersectable) {
         engine_data.intersectable.push(geo);
     }
 
@@ -423,12 +423,12 @@ function loadModelGeometry(name, data_vis) {
     geo.applyMatrix4(M);
 
     let geo_to_remove;
-    if((geo_to_remove = scene.getObjectByName(name)) != undefined) {
+    if ((geo_to_remove = scene.getObjectByName(name)) != undefined) {
         visible = geo_to_remove.visible;
         // color inherit
         geo.material.color = geo_to_remove.material.color;
         const index = engine_data.intersectable.indexOf(geo_to_remove);
-        if(index > -1) {
+        if (index > -1) {
             engine_data.intersectable.splice(index, 1);
         }
         scene.remove(geo_to_remove);
@@ -457,7 +457,7 @@ function initInt(name_group) {
 
         // parent
         let name_parent = engine_data.data[name].interact.parent;
-        if(name_parent != null) {
+        if (name_parent != null) {
             scene.getObjectByName(name_parent).add(obj);
         }   
         
@@ -471,7 +471,7 @@ function visibleCallBack(name_control) {
     return function(value) {
         $.each(engine_data.vis_controls[name_control], 
             (_i, name) => {
-                if(engine_data.obj_loaded.includes(name)) {
+                if (engine_data.obj_loaded.includes(name)) {
                     scene.getObjectByName(name).visible = value;
                 }
                 else {
@@ -508,15 +508,15 @@ function onPointerDown(event) {
    
     for(let i = 0; i < intersects.length; ++i) {
         const object = intersects[i].object;
-        if(!object.visible) continue;  // select the first visible one
-        if(object.name == engine_data.last_pick) return;  // selected the same one
+        if (!object.visible) continue;  // select the first visible one
+        if (object.name == engine_data.last_pick) return;  // selected the same one
         console.log("Object: " + object.name + " selected.\n");
         // update color
-        if(engine_data.last_pick != null) {
+        if (engine_data.last_pick != null) {
             // restore last pick color
             scene.getObjectByName(engine_data.last_pick).material.color = engine_data.last_color;
             // controller | if exists
-            if(engine_data.last_pick in engine_data.t_controllers) {
+            if (engine_data.last_pick in engine_data.t_controllers) {
                 engine_data.t_controllers[engine_data.last_pick].enabled = false;
                 // scene.remove(engine_data.t_controllers[engine_data.last_pick]);
             }
@@ -536,7 +536,7 @@ function onPointerDown(event) {
         } );
 
         // enable controller | if exists
-        if(object.name in engine_data.t_controllers) {
+        if (object.name in engine_data.t_controllers) {
             engine_data.t_controllers[object.name].enabled = true;
             // scene.add(engine_data.t_controllers[object.name]);
         }
