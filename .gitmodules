@@ -4,3 +4,9 @@
 [submodule "external/json"]
 	path = external/json
 	url = https://github.com/nlohmann/json.git
+[submodule "external/dat.gui"]
+	path = external/dat.gui
+	url = https://github.com/dataarts/dat.gui.git
+[submodule "external/three.js"]
+	path = external/three.js
+	url = https://github.com/mrdoob/three.js.git
