@@ -58,7 +58,9 @@ class AVEngine {
         camera = new THREE.PerspectiveCamera(75, 
             (window.innerWidth*engine_data.canvas.ratio_w)/
             (window.innerHeight*engine_data.canvas.ratio_h), 0.1, 1000);
-        camera.position.set(2.0, -2.0, 2.5);  // manually set start position
+        camera.position.set(0.0, 0.0, 0.0);  // manually set start position
+        camera.up = new THREE.Vector3(0.0, -1.0, 0.0);
+        camera.lookAt(new THREE.Vector3(0.0, 0.0, 1.0));
 
         const pointLight = new THREE.PointLight(0xffffff, 0.8);
         camera.add(pointLight);
@@ -82,7 +84,7 @@ class AVEngine {
         trackBall_control.rotateSpeed = 5.0;
         trackBall_control.panSpeed = 1.0;
         trackBall_control.zoomSpeed = 2.0;
-        trackBall_control.target.set(0, 0, 0);
+        trackBall_control.target.set(0.0, 0.0, 1.0);  // look at z-axis
         trackBall_control.staticMoving = true;
         trackBall_control.update();
         
