@@ -467,7 +467,7 @@ function loadModelGraph(name, file_name, data_vis) {
             geometry_v.setAttribute("color", new THREE.Float32BufferAttribute(color_v, 3));
             
             const material_v = new THREE.PointsMaterial({vertexColors: THREE.VertexColors});
-            material_v.size = material_v.size * data_vis.size;  // relative size
+            material_v.size = 0.005 * data_vis.size;  // relative size
             const points = new THREE.Points(geometry_v, material_v);
             
             // edges
