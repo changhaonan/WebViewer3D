@@ -4,7 +4,7 @@ import {OBJLoader} from "./external/three.js/examples/jsm/loaders/OBJLoader.js";
 import {PCDLoader} from "./external/three.js/examples/jsm/loaders/PCDLoader.js";
 import {TransformControls} from "./external/three.js/examples/jsm/controls/TransformControls.js";
 import {VertexNormalsHelper} from "./external/three.js/examples/jsm/helpers/VertexNormalsHelper.js"
-
+import {Lut} from '/external/three.js/examples/jsm/math/Lut.js';
 
 // global variable
 var scene, camera, cam_helper, renderer, trackBall_control;
@@ -233,6 +233,10 @@ function loadModel(name, data) {
             loadModelCorr(name, data.file_name, data.vis);
             console.log("Corr: ", name, " loaded.\n");
         }
+        else if (data.vis.mode == "graph") {
+            loadModelGraph(name, data.file_name, data.vis);
+            console.log("Graph: ", name, " loaded.\n");
+        }
     }
     else if (data.vis.mode == "geometry") {
         loadModelGeometry(name, data.vis);
@@ -438,6 +442,94 @@ function loadModelGeometry(name, data_vis) {
 
     geo.visible = visible;
     scene.add(geo);
+}
+
+function loadModelGraph(name, file_name, data_vis) {
+    // get full path
+    let file_path = engine_data.dir_prefix + engine_data.list_dir[engine_data.p] + "/" + file_name;
+
+    $.getJSON(file_path).done(
+        function(data) {
+            // vertices 
+            const vertices = [];
+            const color_v = [];
+            $.each(data.vertices, (i, vertex)=>{
+                vertices.push(
+                    new THREE.Vector3(
+                        vertex[0], vertex[1], vertex[2]));
+                color_v.push(
+                    data.color_v[i][0],
+                    data.color_v[i][1],
+                    data.color_v[i][2]);
+            });
+
+            const geometry_v = new THREE.BufferGeometry().setFromPoints(vertices);
+            geometry_v.setAttribute("color", new THREE.Float32BufferAttribute(color_v, 3));
+            
+            const material_v = new THREE.PointsMaterial({vertexColors: THREE.VertexColors});
+            material_v.size = material_v.size * data_vis.size;  // relative size
+            const points = new THREE.Points(geometry_v, material_v);
+            
+            // edges
+            const lut = new Lut('rainbow', 512);
+            lut.setMax(data_vis.max_val);
+            lut.setMin(data_vis.min_val);
+
+            const edges = [];
+            const color_e = [];
+            $.each(data.edges, (i, edge)=>{
+                let id_e0 = edge[0];
+                let id_e1 = edge[1];
+
+                edges.push(
+                    new THREE.Vector3(
+                        data.vertices[id_e0][0],
+                        data.vertices[id_e0][1],
+                        data.vertices[id_e0][2]));
+                edges.push(
+                    new THREE.Vector3(
+                        data.vertices[id_e1][0],
+                        data.vertices[id_e1][1],
+                        data.vertices[id_e1][2]));
+                
+                let color = lut.getColor(data.weight_e[i]);
+                color_e.push(color.r, color.g, color.b);
+                color_e.push(color.r, color.g, color.b);
+            });
+
+            const geometry_e = new THREE.BufferGeometry().setFromPoints(edges);
+            geometry_e.setAttribute("color", new THREE.Float32BufferAttribute(color_e, 3));
+            
+            const material_e = new THREE.PointsMaterial({vertexColors: THREE.VertexColors});
+            const lines = new THREE.LineSegments(geometry_e, material_e);
+
+            // group
+            const graph = new THREE.Group();
+            graph.add(points);
+            graph.add(lines);
+
+            graph.name = name;
+            if (data_vis.intersectable) {
+                engine_data.intersectable.push(graph);
+            }
+
+            let M = new THREE.Matrix4();  // relative transform
+            M.elements = data_vis.coordinate;
+            graph.applyMatrix4(M);
+
+            let graph_to_remove;
+            if ((graph_to_remove = scene.getObjectByName(name)) != undefined) {
+                const index = engine_data.intersectable.indexOf(graph_to_remove);
+                if (index > -1) {
+                    engine_data.intersectable.splice(index, 1);
+                }
+                scene.remove(graph_to_remove);
+            }
+
+            graph.visible = true;
+            scene.add(graph);
+        }
+    );
 }
 
 function initInt(name_group) {
