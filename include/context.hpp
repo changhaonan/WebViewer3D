@@ -90,6 +90,27 @@ namespace WebViewer3D {
             addData(name, info_data);
         }
 
+        void addGraph(const std::string& name, const float min_val = 0.f, 
+            const float max_val = 1.f, const float size = 1.f,
+            const Eigen::Matrix4f& coordinate = Eigen::Matrix4f::Identity()) {
+            json info_data;
+            info_data["file_type"] = "json";
+            info_data["file_name"] = (name + ".json");
+            
+            // visualization part
+            info_data["vis"]["section"] = "Graph";
+            info_data["vis"]["control"] = name;
+            info_data["vis"]["mode"] = "graph";
+            info_data["vis"]["gui"] = "check_box";
+            info_data["vis"]["default"] = false;
+            info_data["vis"]["intersectable"] = false;
+            info_data["vis"]["coordinate"] = std::vector<float>(coordinate.data(), coordinate.data()+16);
+            info_data["vis"]["size"] = size;
+            info_data["vis"]["min_val"] = min_val;
+            info_data["vis"]["max_val"] = max_val;
+            addData(name, info_data);  
+        }
+
         // void addMeshObj(const std::string& name, const json& info);
     private:
         void addData(const std::string& name, const json& info) {

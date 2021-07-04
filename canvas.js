@@ -457,10 +457,10 @@ function loadModelGraph(name, file_name, data_vis) {
                 vertices.push(
                     new THREE.Vector3(
                         vertex[0], vertex[1], vertex[2]));
-                color_v.push(
-                    data.color_v[i][0],
-                    data.color_v[i][1],
-                    data.color_v[i][2]);
+                if (data.color_v != undefined) 
+                    color_v.push(data.color_v[i][0], data.color_v[i][1], data.color_v[i][2]);
+                else 
+                    color_v.push(1.0, 1.0, 1.0);
             });
 
             const geometry_v = new THREE.BufferGeometry().setFromPoints(vertices);
@@ -492,7 +492,12 @@ function loadModelGraph(name, file_name, data_vis) {
                         data.vertices[id_e1][1],
                         data.vertices[id_e1][2]));
                 
-                let color = lut.getColor(data.weight_e[i]);
+                let color;
+                if (data.weight_e != undefined) 
+                    color = lut.getColor(data.weight_e[i]);
+                else 
+                    color = {"r": 1.0, "g": 1.0, "b": 1.0};
+                
                 color_e.push(color.r, color.g, color.b);
                 color_e.push(color.r, color.g, color.b);
             });
