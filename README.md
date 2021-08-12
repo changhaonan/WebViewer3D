@@ -23,3 +23,6 @@ Open the local directory page. Click the canvas.html. You can see the model visu
 Install node js
 npm install express
 ```
+
+## TODO:
+- Add Synchronization support for data loading

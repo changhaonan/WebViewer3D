@@ -111,6 +111,20 @@ namespace WebViewer3D {
             addData(name, info_data);  
         }
 
+        void addImage(const std::string& name) {
+            json info_data;
+            info_data["file_type"] = "png";
+            info_data["file_name"] = (name + ".png");
+
+            // visualization part
+            info_data["vis"]["section"] = "Figure";
+            info_data["vis"]["control"] = name;
+            info_data["vis"]["mode"] = "figure";
+            info_data["vis"]["gui"] = "check_box";
+            info_data["vis"]["default"] = false;
+            addData(name, info_data);
+        }
+        
         // void addMeshObj(const std::string& name, const json& info);
     private:
         void addData(const std::string& name, const json& info) {

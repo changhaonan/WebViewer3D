@@ -34,7 +34,7 @@ var engine_data = {
         left : 0.2,
         top : 0.0,
         ratio_w : 0.75,
-        ratio_h : 0.95
+        ratio_h : 0.75
     },
     camera_init : false
 };
@@ -100,7 +100,7 @@ class AVEngine {
 
         // add new controllers
         $.getJSON(file_path).done(function(data) {
-            console.log(file_path + " loaded.\n");
+            infoLog(file_path + " loaded.");
             // save data
             engine_data.data = data;
 
@@ -222,28 +222,31 @@ function updateGuiInt(name, data) {
 function loadModel(name, data) {
     if (data.file_type == "obj") {
         loadModelOBJ(name, data.file_name, data.vis);
-        console.log("Obj: ", name, " loaded.\n");
+        infoLog("Obj: " + name + " loaded.");
     }
     else if (data.file_type == "pcd") {
         loadModelPCD(name, data.file_name, data.vis);
-        console.log("Pcd: ", name, " loaded.\n");
+        infoLog("Pcd: " + name + " loaded.");
     }
     else if (data.file_type == "json") {
         if (data.vis.mode == "corr") {
             loadModelCorr(name, data.file_name, data.vis);
-            console.log("Corr: ", name, " loaded.\n");
+            infoLog("Corr: " + name + " loaded.");
         }
         else if (data.vis.mode == "graph") {
             loadModelGraph(name, data.file_name, data.vis);
-            console.log("Graph: ", name, " loaded.\n");
+            infoLog("Graph: " + name + " loaded.");
         }
+    }
+    else if(data.file_type == "png") {
+        loadModelImage(name, data.file_name, data.vis);
     }
     else if (data.vis.mode == "geometry") {
         loadModelGeometry(name, data.vis);
-        console.log("Geometry: ", name, " loaded.\n");
+        infoLog("Geometry: " + name + " loaded");
     }
     else {
-        console.log("Format %s is not supported.\n", data_save.format);
+        infoLog("Format" + data_save.format + " is not supported.");
     }
 }
 
@@ -288,11 +291,11 @@ function loadModelOBJ(name, file_name, data_vis) {
         },
         // called while loading is progressing
         (xhr) => {
-            // console.log("%s " + (xhr.loaded/xhr.total*100) + "% loaded", name);
+            // infoLog("%s " + (xhr.loaded/xhr.total*100) + "% loaded", name);
         },
         // called when loading has errors
         (error) => {
-            console.log("Obj loading failed.\n");
+            infoLog("Obj loading failed.");
         }
     );
 }
@@ -334,11 +337,11 @@ function loadModelPCD(name, file_name, data_vis) {
         },
         // called while loading is progressing
         (xhr) => {
-            // console.log("%s " + (xhr.loaded/xhr.total*100) + "% loaded", name);
+            // infoLog("%s " + (xhr.loaded/xhr.total*100) + "% loaded", name);
         },
         // called when loading has errors
         (error) => {
-            console.log("Pcd loading failed.\n");
+            infoLog("Pcd loading failed.");
         }
     )
 }
@@ -477,9 +480,14 @@ function loadModelGraph(name, file_name, data_vis) {
 
             const edges = [];
             const color_e = [];
+            const num_vertices = data.vertices.length;
+
             $.each(data.edges, (i, edge)=>{
                 let id_e0 = edge[0];
                 let id_e1 = edge[1];
+
+                // check sanity first
+                if ((id_e0 >= num_vertices) || (id_e1 >= num_vertices)) return;
 
                 edges.push(
                     new THREE.Vector3(
@@ -508,10 +516,18 @@ function loadModelGraph(name, file_name, data_vis) {
             const material_e = new THREE.PointsMaterial({vertexColors: THREE.VertexColors});
             const lines = new THREE.LineSegments(geometry_e, material_e);
 
+            // add a big 0-index point
+            const point_0 = [];
+            point_0.push(new THREE.Vector3(data.vertices[0][0], data.vertices[0][1], data.vertices[0][2]));
+            const dotGeometry = new THREE.BufferGeometry().setFromPoints(point_0);
+            const dotMaterial = new THREE.PointsMaterial({size: 0.01*data_vis.size});
+            const dot = new THREE.Points(dotGeometry, dotMaterial);
+
             // group
             const graph = new THREE.Group();
             graph.add(points);
             graph.add(lines);
+            graph.add(dot);
 
             graph.name = name;
             if (data_vis.intersectable) {
@@ -535,6 +551,39 @@ function loadModelGraph(name, file_name, data_vis) {
             scene.add(graph);
         }
     );
+}
+
+function loadModelImage(name, file_name, data_vis) {
+    let file_path = engine_data.dir_prefix + engine_data.list_dir[engine_data.p] + "/" + file_name;
+    
+    // fetch modal
+    let modal = document.getElementById("modal");
+    let modal_img = document.getElementById("modal-image");
+
+    // insert img 
+    if($("#" + name).length == 0) {  // add a new one
+        $("#plots").append(
+            $("<img>", {id: name, src: file_path, alt: file_name})
+        );
+        // bind call-back
+        $("#" + name).click(
+            function() {
+                modal.style.display = "block";
+                modal_img.src = this.src;
+            }
+        );
+        // bind close
+        $("#modal-close").click(
+            function() {
+                modal.style.display = "none";
+            }
+        );
+    }
+    else {  // update existing one
+        $("#" + name).attr("src", file_path);  // update thumbnail
+        $("#" + name).css("display", "initial");
+        modal_img.src = file_path;  // update modal
+    }
 }
 
 function initInt(name_group) {
@@ -571,7 +620,18 @@ function visibleCallBack(name_control) {
         $.each(engine_data.vis_controls[name_control], 
             (_i, name) => {
                 if (engine_data.obj_loaded.includes(name)) {
-                    scene.getObjectByName(name).visible = value;
+                    if(scene.getObjectByName(name) != undefined) {  // 3D object
+                        scene.getObjectByName(name).visible = value;
+                    }
+                    else {
+                        if(value) {
+                            $("#" + name).css("display", "initial");
+                        }
+                        else {
+                            $("#" + name).css("display", "none");
+                        }
+                        
+                    }
                 }
                 else {
                     // If it doesn't exist. Show it.
@@ -599,7 +659,7 @@ function onPointerDown(event) {
 
     mouse.x = (x_loc/width)*2-1;
     mouse.y = -(y_loc/height)*2+1;
-    // console.log("(%d, %d), (%f, %f)", event.clientX, event.clientY, mouse.x, mouse.y);
+    // infoLog("(%d, %d), (%f, %f)", event.clientX, event.clientY, mouse.x, mouse.y);
 
     let raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouse, camera);
@@ -609,7 +669,7 @@ function onPointerDown(event) {
         const object = intersects[i].object;
         if (!object.visible) continue;  // select the first visible one
         if (object.name == engine_data.last_pick) return;  // selected the same one
-        console.log("Object: " + object.name + " selected.\n");
+        infoLog("Object: " + object.name + " selected.");
         // update color
         if (engine_data.last_pick != null) {
             // restore last pick color
@@ -623,16 +683,6 @@ function onPointerDown(event) {
         engine_data.last_pick = object.name;
         engine_data.last_color = object.material.color.clone();
         object.material.color.setHex(0xffffcc);
-
-        // update info
-        let str_select = object.name;
-        document.getElementById("select").innerHTML = str_select;
-
-        $("#info_select").empty();
-        $.each(engine_data.data[object.name].stat_info, (key, value) => {
-            let str_stat = "<p>" + key + ": " + value + "</p>";
-            $("#info_select").append(str_stat);
-        } );
 
         // enable controller | if exists
         if (object.name in engine_data.t_controllers) {
@@ -650,9 +700,11 @@ function onKeyDown(event) {
     switch(event.key) {
         case "d": // right
             engine.parseNext();
+            setTimeout(()=>{}, 10);  // wait for 0.1s
             break;
         case "a":
             engine.parseLast();
+            setTimeout(()=>{}, 10);  // wait for 0.1s
             break;
         // case " ":
         //     trackBall_control.reset();
@@ -701,9 +753,13 @@ function updateCamera(coordinate, target) {
     // trackBall_control.update();
 
     render();
-    // console.log("Camera pose update.\n");
+    // infoLog("Camera pose update.\n");
 }
 
+function infoLog(msg_str) {
+    msg_str = "<p>" + msg_str + "</p>"
+    $("#message").prepend(msg_str);
+}
 
 var engine = new AVEngine();
 $.post("/list_dir", function(data, status) {
