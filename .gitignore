@@ -5,3 +5,6 @@
 .vscode/*
 build/*
 node_modules/*
+data/*
+log/*
+*.pyc

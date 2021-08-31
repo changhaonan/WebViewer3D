@@ -20,8 +20,8 @@ app.post("/list_dir", function(req, res){
 
     fs.readdir(dir_data, (err, dires) => {
         if (err) {
-            console.log(err)
-            throw err
+            console.log(err);
+            throw err;
         }
         else {
             // match the pattern

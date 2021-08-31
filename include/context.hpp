@@ -125,6 +125,20 @@ namespace WebViewer3D {
             addData(name, info_data);
         }
         
+        void addStats(const std::string& name, const float val) {
+            if(m_context_info.contains(name)) {  // add to end 
+                m_context_info[name]["data"].push_back(val);
+            }
+            else {
+                json info_data;
+                info_data["file_type"] = "json";
+                info_data["file_name"] = (name + ".json");
+                info_data["data"] = std::vector<float>{val};
+
+                // visualization part : powered by d3 [not avaliable now]
+                addData(name, info_data);
+            }
+        }
         // void addMeshObj(const std::string& name, const json& info);
     private:
         void addData(const std::string& name, const json& info) {
